@@ -79,21 +79,25 @@ if (isset($_GET['level'])) {
     foreach ($ladar AS $site => $data) {
         $info = array();
         
-        // info : type key, quantity, sell amount, total quantity of gas
+        // info : type key, quantity, sell amount, total quantity of gas, #of cycles
         reset($data); 
             $price = json_decode($emdr->get(key($data)), true);
             $info[1] = array(
                 key($data), 
                 current($data), 
                 $price['orders']['sell'][0], 
-                $gas[key($data)][1] * current($data));
+                $gas[key($data)][1] * current($data),
+                floor((($gas[key($data)][1] * current($data))/MINE_AMOUNT)/LEVEL)
+                );
         end($data);   
             $price = json_decode($emdr->get(key($data)), true);
             $info[2] = array(
                 key($data), 
                 current($data), 
                 $price['orders']['sell'][0], 
-                $gas[key($data)][1] * current($data));
+                $gas[key($data)][1] * current($data),
+                floor((($gas[key($data)][1] * current($data))/MINE_AMOUNT)/LEVEL)
+                );
 
         $profit = ($info[1][1] * $info[1][2]) + ($info[2][1] * $info[2][2]);
         $cycles = floor((($info[1][3] + $info[2][3])/MINE_AMOUNT)/LEVEL);
@@ -103,16 +107,21 @@ if (isset($_GET['level'])) {
             <td>".$gas[$info[1][0]][0]."</td>
             <td>".$info[1][1]."</td>
             <td>".number_format($info[1][2])/*sell*/."</td>
-            <td rowspan='2'>".number_format($profit)."</td>
-            <td rowspan='2'>".number_format($info[1][3] + $info[2][3])."</td>
-            <td rowspan='2'>".$cycles."</td>
-            <td rowspan='2'>".round((($cycles * CYCLE_TIME)/60)/60, 2)."</td>
-            <td rowspan='2'>".number_format($profit / ((($cycles * CYCLE_TIME)/60)/60))."</td>
+            <td>".number_format($info[1][1] * $info[1][2])."</td>
+            <td>".number_format($info[1][3])."</td>
+            <td>".$info[1][4]."</td>
+            <td>".round((($info[1][4] * CYCLE_TIME)/60)/60, 2)."</td>
+            <td>".number_format(($info[1][1] * $info[1][2]) / ((($info[1][4] * CYCLE_TIME)/60)/60))."</td>
             </tr>
             <tr>
             <td>".$gas[$info[2][0]][0]."</td>
             <td>".$info[2][1]."</td>
             <td>".number_format($info[2][2])."</td>
+            <td>".number_format($info[2][1] * $info[2][2])."</td>
+            <td>".number_format($info[2][3])."</td>
+            <td>".$info[2][4]."</td>
+            <td>".round((($info[2][4] * CYCLE_TIME)/60)/60, 2)."</td>
+            <td>".number_format(($info[2][1] * $info[2][2]) / ((($info[2][4] * CYCLE_TIME)/60)/60))."</td>
             </tr>";
 
     }
