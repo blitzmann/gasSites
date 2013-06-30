@@ -14,8 +14,7 @@ if ($_POST['redirect'] == 'k-space' || $_POST['redirect'] == 'wormhole') {
             6 - Capital ship (0 for none)
             8 - ship skill level
             9 - implant (0 for none)
-            10 - venture (bool)
-            11 - frigate skill level
+            10 - frigate skill level
     */
     
     $inputs = array (
