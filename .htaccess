@@ -1,7 +1,8 @@
 RewriteEngine On
 RewriteRule    ^k-space/?$    k-space.php    [NC,L]
 RewriteRule    ^wormhole/?$    wormhole.php    [NC,L]
-RewriteRule    ^k-space/level/([1-5])/link/([0-2])/?$    k-space.php?level=$1&link=$2    [NC,L]
-RewriteRule    ^wormhole/level/([1-5])/link/([0-2])/?$    wormhole.php?level=$1&link=$2    [NC,L]
-RewriteRule    ^k-space/level/([1-5])/link/([0-2])/frigate/([1-5])/?$    k-space.php?level=$1&link=$2&frigate=$3    [NC,L]
-RewriteRule    ^wormhole/level/([1-5])/link/([0-2])/frigate/([1-5])/?$   wormhole.php?level=$1&link=$2&frigate=$3    [NC,L]
+RewriteRule    ^k-space/([0-5]{10})/?$    k-space.php?inputs=$1    [NC,L]
+RewriteRule    ^wormhole/([0-5]{10})/?$   wormhole.php?inputs=$1   [NC,L]
+RewriteRule    ^submit?$   redirect.php   [NC,L]
+
+# GH skill

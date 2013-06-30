@@ -57,6 +57,8 @@ $emdr  = new EMDR($prefs['region'], $emdrVersion);
 $links = array(0,.02,.025);
 
 function romanNumerals($num){ 
+    if ($num == 0) {
+        return "N/A"; }
     $n = intval($num); 
     $res = ''; 
     /*** roman_numerals array  ***/ 
@@ -86,6 +88,67 @@ function romanNumerals($num){
     return $res; 
 } 
 
+$defaults = '0000000000';
+list (
+    $ghSkill,
+    $boolLinks,
+    $linkTech,
+    $director,
+    $warfare,
+    $boolMindlink,
+    $capShip,
+    $capSkill,
+    $implants,
+    $ventureSkill) = str_split(trim((isset($_GET['inputs']) ? $_GET['inputs'] : $defaults) ));
+
+/*
+** Set variables and do calculations from input
+*/
+
+if ($linkTech == 0) { $link = 0; }
+else { $link = $links[$linkTech]; }
+
+if ($ghSkill < 5) { // set t1 base values
+    $mine_amount = 10;
+    $duration    = 30;
+}  
+else { // set t2 values
+    $mine_amount = 20;
+    $duration    = 40;
+}
+
+// how many GH do we have? If it's a venture, take the min of level or 2 (venture max)
+$gh_qty = ($ventureSkill != 0 ? min($ghSkill,2) : $ghSkill);
+
+$dBonuses = array(); // duration bonuses array
+// the following relates to setting up link bonuses
+if ($boolLinks != 0 && $linkTech != 0) {   
+    if ($capShip != 0) {
+        $capMultiple = array(1=>3, 2=>10);
+        $capBonus = 1+(($capMultiple[$capShip] * $capSkill)/100);
+    } else { $capBonus = 1; }
+    
+    $lBonuses = array($link, (int)$director, (1+($warfare/10)), ($boolMindlink != 0 ? 1.5 : 1), $capBonus);
+    array_push($dBonuses, array_product($lBonuses));
+}
+
+// venture duration bonuses
+if ($ventureSkill != 0) {
+    array_push($dBonuses, ($ventureSkill * 0.05)); }
+
+// implant duration bonuses
+if ($implants != 0) {
+    $impMultiple = array(1=>1, 2=>3, 3=>5);
+    array_push($dBonuses, $impMultiple[$implants] / 100); }
+    
+// sum it all up
+foreach ($dBonuses AS $bonus) {
+    $duration = $duration - ($duration * $bonus); }
+
+// var_dump($dBonuses);
+   
+define("MINE_AMOUNT", $mine_amount);
+define("CYCLE_TIME", $duration);
+define("LEVEL", $gh_qty);
 
 ?>
-    
