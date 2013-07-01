@@ -3,16 +3,18 @@
 // config.php - handles all initial configuration, does not produce any output
 
 ob_start("ob_gzhandler");
-//die('LP store down for database update.     Check back in a few minutes.');
+
+// These can be found in other projects of mine. Check github.com/blitzmann
 require_once '/home/http/lib/class.DB.php';
 require_once '/home/http/lib/class.EMDR.php';
 
 define('ABS_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('BASE_PATH','/'.substr(dirname(__FILE__),strlen($_SERVER['DOCUMENT_ROOT'])).'/');
 
-$DB = new DB(parse_ini_file('/home/http/private/db-eve-odyssey-dev.ini'));
+$DB = new DB(parse_ini_file('/home/http/private/db-eve-odyssey-readonly.ini'));
 $emdrVersion = 1;
 
+// No plans to make this configurable as it is in lpStore
 $defaultPrefs = array(
     'region'      => 10000002,
     'marketMode'  => 'sell'
@@ -54,11 +56,11 @@ else {
 	$prefs = $defaultPrefs; }
 
 $emdr  = new EMDR($prefs['region'], $emdrVersion);
-$links = array(0,.02,.025);
+$links = array(0,.02,.025); // set multiplier for links
 
 function romanNumerals($num){ 
     if ($num == 0) {
-        return "N/A"; }
+        return "0"; } // TIL there is no Roman Numeral for 0
     $n = intval($num); 
     $res = ''; 
     /*** roman_numerals array  ***/ 
@@ -88,6 +90,7 @@ function romanNumerals($num){
     return $res; 
 } 
 
+// Set input values
 $defaults = '0000000000';
 list (
     $ghSkill,
@@ -145,7 +148,7 @@ if ($implants != 0) {
 foreach ($dBonuses AS $bonus) {
     $duration = $duration - ($duration * $bonus); }
 
-// var_dump($dBonuses);
+// var_dump($dBonuses); // dump all duration bonuses
    
 define("MINE_AMOUNT", $mine_amount);
 define("CYCLE_TIME", $duration);

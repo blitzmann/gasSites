@@ -2,7 +2,7 @@
 
 if (isset($_GET['inputs'])) {
    
-    $results = $DB->qa("SELECT a.*, b.volume, b.typeName FROM gasSites a INNER JOIN invTypes b ON (a.typeID = b.typeID) ORDER BY a.name ASC", array());
+    $results = $DB->qa("SELECT a.*, b.volume, b.typeName FROM kgasSites a INNER JOIN invTypes b ON (a.typeID = b.typeID) ORDER BY a.name ASC", array());
 
     echo "
     <table id='siteTable' class='table table-bordered table-striped'>
