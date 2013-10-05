@@ -1,10 +1,11 @@
-<?php require 'config.php'; $title='K-Space'; require 'head.php';
+<?php require_once 'config.php'; $title='K-Space'; require_once 'form.php';
 
-if (isset($_GET['inputs'])) {
+if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
    
-    $results = $DB->qa("SELECT a.*, b.volume, b.typeName FROM kgasSites a INNER JOIN invTypes b ON (a.typeID = b.typeID) ORDER BY a.name ASC", array());
+    $results = $DB->qa("SELECT a.*, b.volume, b.typeName FROM gasSites a INNER JOIN invTypes b ON (a.typeID = b.typeID) ORDER BY a.name ASC", array());
 
     echo "
+    <hr id='gasSites' />
     <table id='siteTable' class='table table-bordered table-striped'>
     <thead>
     <tr>

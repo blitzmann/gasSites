@@ -19,18 +19,18 @@ if ($_POST['redirect'] == 'k-space' || $_POST['redirect'] == 'wormhole') {
     
     $inputs = array (
         filter_input(INPUT_POST, 'ghSkill', FILTER_VALIDATE_INT),
-        ($_POST['boolLinks'] == true ? 1 : 0),
+        ($_POST['boolLinks']    == true ? 1 : 0),
         filter_input(INPUT_POST, 'linkTech', FILTER_VALIDATE_INT),
         filter_input(INPUT_POST, 'director', FILTER_VALIDATE_INT),
-        filter_input(INPUT_POST, 'warfare', FILTER_VALIDATE_INT),
+        filter_input(INPUT_POST, 'warfare',  FILTER_VALIDATE_INT),
         ($_POST['boolMindlink'] == true ? 1 : 0),
-        ($_POST['capital'] == true ?  filter_input(INPUT_POST, 'capShip', FILTER_VALIDATE_INT) : 0),
+        ($_POST['capital']      == true ? filter_input(INPUT_POST, 'capShip', FILTER_VALIDATE_INT) : 0),
         filter_input(INPUT_POST, 'capSkill', FILTER_VALIDATE_INT),
-        ($_POST['implants'] == true ?  filter_input(INPUT_POST, 'ghImplant', FILTER_VALIDATE_INT) : 0),
-        filter_input(INPUT_POST, 'ventureSkill', FILTER_VALIDATE_INT)
+        ($_POST['implants']     == true ? filter_input(INPUT_POST, 'ghImplant', FILTER_VALIDATE_INT) : 0),
+        ($_POST['boolVenture']  == true ? filter_input(INPUT_POST, 'ventureSkill', FILTER_VALIDATE_INT) : 0)
     );
 
-    header("Location: ".BASE_PATH.$_POST['redirect']."/".implode($inputs,'')."/#gasSites");
+    header("Location: ".BASE_PATH.$_POST['redirect']."/".implode($inputs,'')."/".(isset($_POST['debug'])?"debug":null));
     
     exit;
 }

@@ -2,6 +2,10 @@
 
 // config.php - handles all initial configuration, does not produce any output
 
+# @todo: for links, if we are not using any, disable all other options for links
+# @todo: venture selects itself after submission
+# @todo: t2 links requires Director 5
+
 ob_start("ob_gzhandler");
 
 // These can be found in other projects of mine. Check github.com/blitzmann
@@ -14,53 +18,19 @@ define('BASE_PATH','/'.substr(dirname(__FILE__),strlen($_SERVER['DOCUMENT_ROOT']
 $DB = new DB(parse_ini_file('/home/http/private/db-eve-odyssey-readonly.ini'));
 $emdrVersion = 1;
 
-// No plans to make this configurable as it is in lpStore
-$defaultPrefs = array(
-    'region'      => 10000002,
-    'marketMode'  => 'sell'
-);
-
 // END USER CONFIGURATION
 
 $time = explode(' ', microtime());
 $start = $time[1] + $time[0];
 
-$page = basename($_SERVER['PHP_SELF']);
-
-function testRegionInput($input) {
-    global $defaultPrefs, $regions;
-    if (isset($regions[$input])) {
-        return (int)$input; }
-    return $defaultPrefs['region'];
-}    
-
-function testMarketModeInput($input) {
-    global $defaultPrefs;
-    if ($input == 'sell' || $input == 'buy') {
-        return $input; }
-    return $defaultPrefs['marketMode'];
-}    
-
-$filterArgs = array(
-    'region'    => array(
-                'filter' => FILTER_CALLBACK,
-                'options'=>'testRegionInput'),
-    'marketMode' => array(
-                'filter' => FILTER_CALLBACK,
-                'options'=>'testMarketModeInput'),
-);
-
-if (isset($_COOKIE['preferences'])){
-	$prefs = filter_var_array(unserialize($_COOKIE['preferences']), $filterArgs); }
-else {
-	$prefs = $defaultPrefs; }
-
-$emdr  = new EMDR($prefs['region'], $emdrVersion);
-$links = array(0,.02,.025); // set multiplier for links
+$page        = basename($_SERVER['PHP_SELF']);
+$emdr        = new EMDR(10000002, $emdrVersion); # Jita
+$links       = array(0, .02, .025);              # link multiplier
+$impMultiple = array(1=>1, 2=>3, 3=>5);          # implant multiplier
 
 function romanNumerals($num){ 
     if ($num == 0) {
-        return "0"; } // TIL there is no Roman Numeral for 0
+        return "0"; } # TIL there is no Roman Numeral for 0
     $n = intval($num); 
     $res = ''; 
     /*** roman_numerals array  ***/ 
@@ -90,7 +60,7 @@ function romanNumerals($num){
     return $res; 
 } 
 
-// Set input values
+# Set input values
 $defaults = '0000000000';
 list (
     $ghSkill,
@@ -102,56 +72,71 @@ list (
     $capShip,
     $capSkill,
     $implants,
-    $ventureSkill) = str_split(trim((isset($_GET['inputs']) ? $_GET['inputs'] : $defaults) ));
+    $ventureSkill) = str_split(trim((isset($_GET['inputs']) && !empty($_GET['inputs']) ? $_GET['inputs'] : $defaults) ));
 
-/*
-** Set variables and do calculations from input
-*/
+if (isset($_GET['debug'])) {
+    DEFINE("DEBUG", true); }
+else {
+    DEFINE("DEBUG", false); }
+
+###########################
+# Set variables and do calculations from input
+###########################
 
 if ($linkTech == 0) { $link = 0; }
 else { $link = $links[$linkTech]; }
 
-if ($ghSkill < 5) { // set t1 base values
+if ($ghSkill < 5) { # set t1 base values
     $mine_amount = 10;
     $duration    = 30;
 }  
-else { // set t2 values
+else { # set t2 values
     $mine_amount = 20;
-    $duration    = 40;
+    $duration =   40;
 }
 
-// how many GH do we have? If it's a venture, take the min of level or 2 (venture max)
+# Question: Since I always forget, why do we not calculate based off of Mining Foreman Skill?
+# Answer:   Mining Foreman skill does nothing for gas harvester. Links only affect duration
+
+# How many GH do we have? If it's a venture, take the min of level or 2 (venture max)
 $gh_qty = ($ventureSkill != 0 ? min($ghSkill,2) : $ghSkill);
 
 $dBonuses = array(); // duration bonuses array
-// the following relates to setting up link bonuses
+$lBonuses = array(); // queue of bonuses caused by links
+
+# the following relates to setting up link bonuses
 if ($boolLinks != 0 && $linkTech != 0) {   
     if ($capShip != 0) {
         $capMultiple = array(1=>3, 2=>10);
         $capBonus = 1+(($capMultiple[$capShip] * $capSkill)/100);
     } else { $capBonus = 1; }
     
-    $lBonuses = array($link, (int)$director, (1+($warfare/10)), ($boolMindlink != 0 ? 1.5 : 1), $capBonus);
-    array_push($dBonuses, array_product($lBonuses));
+    $lNames   = array ('base','directorSkill','specialistSkill', 'mindlink', 'capital');
+    $lBonuses = array_combine($lNames, array(
+                                            $link, 
+                                            (1+(($director*2)/10)), 
+                                            (1+($warfare/10)), 
+                                            ($boolMindlink != 0 ? 1.25 : 1), 
+                                            $capBonus));
+    
+    # take the product of link bonuses and apply to main bonus array
+    $dBonuses['resultantLinks'] = array_product($lBonuses); 
 }
 
-// venture duration bonuses
+# venture duration bonuses
 if ($ventureSkill != 0) {
-    array_push($dBonuses, ($ventureSkill * 0.05)); }
+    $dBonuses['venture'] = ($ventureSkill * 0.05); }
 
-// implant duration bonuses
+# implant duration bonuses
 if ($implants != 0) {
-    $impMultiple = array(1=>1, 2=>3, 3=>5);
-    array_push($dBonuses, $impMultiple[$implants] / 100); }
+   $dBonuses['implant'] = $impMultiple[$implants] / 100; }
     
-// sum it all up
-foreach ($dBonuses AS $bonus) {
-    $duration = $duration - ($duration * $bonus); }
-
-// var_dump($dBonuses); // dump all duration bonuses
-   
-define("MINE_AMOUNT", $mine_amount);
-define("CYCLE_TIME", $duration);
+# sum up the duration modifiers
+$dResultant = $duration;
+foreach ($dBonuses AS $bonus) { $dResultant = $dResultant - ($dResultant * $bonus); }    
+ 
+define("MINE_AMOUNT", ($ventureSkill == 0 ? $mine_amount : $mine_amount*2));
+define("CYCLE_TIME", $dResultant);
 define("LEVEL", $gh_qty);
 
 ?>

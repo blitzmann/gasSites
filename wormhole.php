@@ -1,6 +1,6 @@
-<?php require 'config.php'; $title='Wormhole'; require 'head.php';
+<?php require_once 'config.php'; $title='Wormhole'; require_once 'form.php';
 
-if (isset($_GET['inputs'])) {
+if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
     
     $gas = array(
         30375 => array("Fullerite-C28",  2),
@@ -27,6 +27,7 @@ if (isset($_GET['inputs'])) {
     );
 
     echo"
+    <hr id='gasSites' />
     <table id='siteTable' class='table table-bordered table-striped'>
     <thead>
         <tr>
