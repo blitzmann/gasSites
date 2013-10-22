@@ -2,29 +2,12 @@
 
 if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
     
-    $gas = array(
-        30375 => array("Fullerite-C28",  2),
-        30376 => array("Fullerite-C32",  5),
-        30377 => array("Fullerite-C320", 5),
-        30370 => array("Fullerite-C50",  1),
-        30378 => array("Fullerite-C540", 10),
-        30371 => array("Fullerite-C60",  1),
-        30372 => array("Fullerite-C70",  1),
-        30373 => array("Fullerite-C72",  2),
-        30374 => array("Fullerite-C84",  2)
-    );
-
-    $ladar = array(
-        "Barren"       => array(30370 => 3000, 30371 => 1500),
-        "Token"	       => array(30371 => 3000, 30372 => 1500), 
-        "Minor"        => array(30372 => 3000, 30373 => 1500),
-        "Ordinary"     => array(30373 => 3000, 30374 => 1500),
-        "Sizable"      => array(30374 => 3000, 30370 => 1500),
-        "Bountiful"    => array(30375 => 5000, 30376 => 1000),
-        "Vast"         => array(30375 => 1000, 30376 => 5000),
-        "Vital"        => array(30377 => 500,  30378 => 6000),
-        "Instrumental" => array(30378 => 500,  30377 => 6000)
-    );
+    $results = $DB->qa("
+        SELECT g.*, a.volume, a.typeName, b.volume AS volume2, b.typeName AS typeName2
+        FROM gasSites g 
+        INNER JOIN invTypes a ON (g.typeID = a.typeID) 
+        INNER JOIN invTypes b ON (g.typeID2 = b.typeID) 
+        WHERE typeID2 is not NULL", array());
 
     echo"
     <hr id='gasSites' />
@@ -44,36 +27,35 @@ if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
         </tr>
     </thead>
     <tbody>";
-
-    foreach ($ladar AS $site => $data) {
+    
+     foreach ($results AS $data) {
         $info = array();
         
-        // info : type key, quantity, sell amount, total quantity of gas, #of cycles
-        reset($data); 
-            $price = json_decode($emdr->get(key($data)), true);
-            $info[1] = array(
-                key($data), 
-                current($data), 
-                $price['orders']['sell'][0], 
-                $gas[key($data)][1] * current($data),
-                floor((($gas[key($data)][1] * current($data))/MINE_AMOUNT)/LEVEL)
-                );
-        end($data);   
-            $price = json_decode($emdr->get(key($data)), true);
-            $info[2] = array(
-                key($data), 
-                current($data), 
-                $price['orders']['sell'][0], 
-                $gas[key($data)][1] * current($data),
-                floor((($gas[key($data)][1] * current($data))/MINE_AMOUNT)/LEVEL)
-                );
+        // info : type key, quantity, sell amount, total quantity of gas, #of cycles 
+        $price = json_decode($emdr->get($data['typeID']), true);
+        $info[1] = array(
+            $data['typeID'], 
+            $data['qty'], 
+            $price['orders']['sell'][0], 
+            $data['volume'] * $data['qty'],
+            floor((($data['volume'] * $data['qty'])/MINE_AMOUNT)/LEVEL)
+        );
+  
+        $price = json_decode($emdr->get($data['typeID2']), true);
+        $info[2] = array(
+            $data['typeID2'], 
+            $data['qty2'], 
+            $price['orders']['sell'][0], 
+            $data['volume2'] * $data['qty2'],
+            floor((($data['volume2'] * $data['qty2'])/MINE_AMOUNT)/LEVEL)
+        );
 
         $profit = ($info[1][1] * $info[1][2]) + ($info[2][1] * $info[2][2]);
         $cycles = floor((($info[1][3] + $info[2][3])/MINE_AMOUNT)/LEVEL);
         
         echo "<tr>
-            <td rowspan='2'>$site</td>
-            <td>".$gas[$info[1][0]][0]."</td>
+            <td rowspan='2'>".$data['name']."</td>
+            <td>".$data['typeName']."</td>
             <td>".$info[1][1]."</td>
             <td>".number_format($info[1][2])/*sell*/."</td>
             <td>".number_format($info[1][1] * $info[1][2])."</td>
@@ -83,7 +65,7 @@ if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
             <td>".number_format(($info[1][1] * $info[1][2]) / ((($info[1][4] * CYCLE_TIME)/60)/60))."</td>
             </tr>
             <tr>
-            <td>".$gas[$info[2][0]][0]."</td>
+            <td>".$data['typeName2']."</td>
             <td>".$info[2][1]."</td>
             <td>".number_format($info[2][2])."</td>
             <td>".number_format($info[2][1] * $info[2][2])."</td>

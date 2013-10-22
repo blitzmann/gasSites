@@ -5,6 +5,7 @@
 # @todo: for links, if we are not using any, disable all other options for links
 # @todo: venture selects itself after submission
 # @todo: t2 links requires Director 5
+# @todo: seperate gas sites into 2 tables, supply extra info such as space that it can be found in
 
 ob_start("ob_gzhandler");
 
@@ -15,7 +16,10 @@ require_once '/home/http/lib/class.EMDR.php';
 define('ABS_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('BASE_PATH','/'.substr(dirname(__FILE__),strlen($_SERVER['DOCUMENT_ROOT'])).'/');
 
-$DB = new DB(parse_ini_file('/home/http/private/db-eve-odyssey-readonly.ini'));
+# Switch between SQLite and database service 
+//$DB = new DB(parse_ini_file('/home/http/private/db-eve-odyssey-write.ini'));
+$DB = new DB(array('dsn'=>'sqlite:inc/gasSites.db', 'uname'=>null, 'passwd'=>null));
+
 $emdrVersion = 1;
 
 // END USER CONFIGURATION

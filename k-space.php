@@ -1,8 +1,13 @@
 <?php require_once 'config.php'; $title='K-Space'; require_once 'form.php';
 
 if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
-   
-    $results = $DB->qa("SELECT a.*, b.volume, b.typeName FROM gasSites a INNER JOIN invTypes b ON (a.typeID = b.typeID) ORDER BY a.name ASC", array());
+    // @todo: fix the null portion here
+    $results = $DB->qa("
+        SELECT a.*, b.volume, b.typeName 
+        FROM gasSites a 
+        INNER JOIN invTypes b ON (a.typeID = b.typeID) 
+        WHERE typeID2 = '' OR typeID2 is NULL
+        ORDER BY a.name ASC", array());
 
     echo "
     <hr id='gasSites' />
