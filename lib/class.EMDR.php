@@ -20,7 +20,7 @@ class EMDR /* extends Redis */ {
 
 		// return parent::get($string);
 		// EMDR is dead, return dummy data for now to prevent breaking of things
-		return '{"orders": {"sell": [51]}}';
+		return '{"orders": {"sell": ['.rand(1000, 100000).']}}';
 	}
 }
 

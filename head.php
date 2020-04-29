@@ -9,3 +9,9 @@
 </head>
 <body>
 <div class='wrapper'>
+<div class="alert alert-info">
+    Note: The <a href="http://www.eve-emdr.com/en/latest/" target="_blank">EMDR network</a> shutdown in 2017,
+    and so the pricing source used by this app became defunct. The application itself has been defunct as well 
+    for quite a while, and at this time there's no incentive to fix it. The app is currently displays a random 
+    price between 1,000 ISK and 100,000 ISK.
+</div>
