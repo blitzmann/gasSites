@@ -10,11 +10,11 @@
 ob_start("ob_gzhandler");
 
 // These can be found in other projects of mine. Check github.com/blitzmann
-require_once '/home/http/lib/class.DB.php';
-require_once '/home/http/lib/class.EMDR.php';
+require_once 'lib/class.DB.php';
+require_once 'lib/class.EMDR.php';
 
 define('ABS_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
-define('BASE_PATH','/'.substr(dirname(__FILE__),strlen($_SERVER['DOCUMENT_ROOT'])).'/');
+define('BASE_PATH',str_replace(DIRECTORY_SEPARATOR, "/", substr(dirname(__FILE__),strlen($_SERVER['DOCUMENT_ROOT'])).'/'));
 
 # Switch between SQLite and database service 
 //$DB = new DB(parse_ini_file('/home/http/private/db-eve-odyssey-write.ini'));
