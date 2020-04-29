@@ -11,7 +11,6 @@ ob_start("ob_gzhandler");
 
 // These can be found in other projects of mine. Check github.com/blitzmann
 require_once 'lib/class.DB.php';
-require_once 'lib/class.EMDR.php';
 
 define('ABS_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('BASE_PATH',str_replace(DIRECTORY_SEPARATOR, "/", substr(dirname(__FILE__),strlen($_SERVER['DOCUMENT_ROOT'])).'/'));
@@ -20,15 +19,12 @@ define('BASE_PATH',str_replace(DIRECTORY_SEPARATOR, "/", substr(dirname(__FILE__
 //$DB = new DB(parse_ini_file('/home/http/private/db-eve-odyssey-write.ini'));
 $DB = new DB(array('dsn'=>'sqlite:inc/gasSites.db', 'uname'=>null, 'passwd'=>null));
 
-$emdrVersion = 1;
-
 // END USER CONFIGURATION
 
 $time = explode(' ', microtime());
 $start = $time[1] + $time[0];
 
 $page        = basename($_SERVER['PHP_SELF']);
-$emdr        = new EMDR(10000002, $emdrVersion); # Jita
 $links       = array(0, .02, .025);              # link multiplier
 $impMultiple = array(1=>1, 2=>3, 3=>5);          # implant multiplier
 

@@ -1,5 +1,18 @@
 <?php require_once 'config.php'; $title='K-Space'; require_once 'form.php';
 
+function get_data($url, $post) {
+	$ch = curl_init();
+	$timeout = 5;
+	curl_setopt($ch,CURLOPT_URL,$url);
+	curl_setopt($ch,CURLOPT_USERAGENT,'ladar thingy');
+	curl_setopt($ch,CURLOPT_POSTFIELDS,$post);
+	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
+	$data = curl_exec($ch);
+	curl_close($ch);
+	return $data;
+}
+
 if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
     // @todo: fix the null portion here
     $results = $DB->qa("
@@ -29,18 +42,30 @@ if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
     <tbody>
     ";
 
+    $types = implode(
+                array_unique(
+                    array_map(function($obj) { return $obj['typeID']; }, $results),
+                ),
+                "&typeid="
+            ) ;
+    $fields = "typeid=$types&usesystem=30000142";
+    $data = get_data('https://api.evemarketer.com/ec/marketstat', $fields);
+    $xml = new SimpleXMLElement($data);   
+    // print_r($xml);
+
     foreach ($results AS $data) {
-        $price = json_decode($emdr->get($data['typeID']), true);
+        $price = $xml->xpath('/exec_api/marketstat/type[@id="'.$data['typeID'].'"]/sell/min'); 
+        $price = (int)$price[0];
         // {"orders": {"sell": ["19986.52", 88955],
 
-        $profit = ($data['qty'] * $price['orders']['sell'][0]);
+        $profit = ($data['qty'] * $price);
         $cycles = floor((($data['qty'] * $data['volume'])/MINE_AMOUNT)/LEVEL);
         
         echo "<tr>
             <td>".$data['name']."</td>
             <td>".$data['typeName']."</td>
             <td>".$data['qty']."</td>
-            <td>".number_format($price['orders']['sell'][0])." ISK</td>
+            <td>".number_format($price)." ISK</td>
             <td>".number_format($profit)."</td>
             <td>".number_format($data['qty'] * $data['volume'])."</td>
             <td>".$cycles."</td>

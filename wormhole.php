@@ -1,5 +1,18 @@
 <?php require_once 'config.php'; $title='Wormhole'; require_once 'form.php';
 
+function get_data($url, $post) {
+	$ch = curl_init();
+	$timeout = 5;
+	curl_setopt($ch,CURLOPT_URL,$url);
+	curl_setopt($ch,CURLOPT_USERAGENT,'ladar thingy');
+	curl_setopt($ch,CURLOPT_POSTFIELDS,$post);
+	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
+	$data = curl_exec($ch);
+	curl_close($ch);
+	return $data;
+}
+
 if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
     
     $results = $DB->qa("
@@ -28,24 +41,40 @@ if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
     </thead>
     <tbody>";
     
+    $types = implode(
+                array_unique(
+                    array_merge(
+                        array_map(function($obj) { return $obj['typeID']; }, $results),
+                        array_map(function($obj) { return $obj['typeID2']; }, $results)
+                    )
+                ), 
+                "&typeid="
+            ) ;
+    $fields = "typeid=$types&usesystem=30000142";
+    $data = get_data('https://api.evemarketer.com/ec/marketstat', $fields);
+    $xml = new SimpleXMLElement($data);   
+    // print_r($xml);
+
      foreach ($results AS $data) {
         $info = array();
         
         // info : type key, quantity, sell amount, total quantity of gas, #of cycles 
-        $price = json_decode($emdr->get($data['typeID']), true);
+        $price = $xml->xpath('/exec_api/marketstat/type[@id="'.$data['typeID'].'"]/sell/min'); 
+
         $info[1] = array(
             $data['typeID'], 
             $data['qty'], 
-            $price['orders']['sell'][0], 
+            (float)$price[0], 
             $data['volume'] * $data['qty'],
             floor((($data['volume'] * $data['qty'])/MINE_AMOUNT)/LEVEL)
         );
   
-        $price = json_decode($emdr->get($data['typeID2']), true);
+        $price = $xml->xpath('/exec_api/marketstat/type[@id="'.$data['typeID2'].'"]/sell/min'); 
+        
         $info[2] = array(
             $data['typeID2'], 
             $data['qty2'], 
-            $price['orders']['sell'][0], 
+            (float)$price[0], 
             $data['volume2'] * $data['qty2'],
             floor((($data['volume2'] * $data['qty2'])/MINE_AMOUNT)/LEVEL)
         );
@@ -76,7 +105,8 @@ if (isset($_GET['inputs']) && !empty($_GET['inputs'])) {
             </tr>";
 
     }
-    echo "</tbody></table><small>* Estimated via EMDR network using The Forge sell data. Please see <a href='https://github.com/blitzmann/emdr-py'>emdr-py</a> for more details.</small>";
+    echo "</tbody></table><small>* Estimated via https://evemarketer.com/ using Jita as the system</small>";
 }
+
 require 'foot.php';
 ?>
